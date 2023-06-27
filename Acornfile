@@ -1,0 +1,54 @@
+args: {
+    dbName: "instance"
+}
+
+// This is expected to be bound in 
+services: db: {}
+
+services: export: {
+    default: true
+    generated: job: "create"
+}
+
+jobs: create: {
+    dependsOn: "db"
+    env: {
+        DBNAME: args.dbName
+        ADMIN_USER: "@{service.db.secrets.admin.username}"
+        ADMIN_PASS: "@{service.db.secrets.admin.password}"
+        USER: "@{secrets.user.username}"
+        PASS: "@{secrets.user.password}"
+    }
+    image: "cgr.dev/chainguard/mariadb"
+    dirs: "/app": "./scripts"
+    files: "/app/run.sh": """
+    #!/bin/sh
+    set -x -e
+    /app/createdb.sh
+    tee /run/secrets/output << EOF
+    services: export: {
+        address: "@{services.db.address}"
+        ports: @{service.db.ports.3306}
+        secrets: ["admin", "user"]
+        data: {
+            dbName: "\(args.dbName)"
+        }
+    }
+    EOF
+    """
+    entrypoint: "/app/run.sh"
+}
+
+secrets: admin: {
+    alias: "db.admin"
+}
+
+secrets: user: {
+    type: "basic"
+    data: {
+        username: args.dbName
+        if args.dev {
+            password: args.dbName
+        }
+    }
+}
