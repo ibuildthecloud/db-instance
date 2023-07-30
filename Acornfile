@@ -1,5 +1,6 @@
 args: {
     dbName: "instance"
+    username: args.dbName
 }
 
 // This is expected to be bound in 
@@ -46,9 +47,6 @@ secrets: admin: {
 secrets: user: {
     type: "basic"
     data: {
-        username: args.dbName
-        if args.dev {
-            password: args.dbName
-        }
+        username: args.username
     }
 }
