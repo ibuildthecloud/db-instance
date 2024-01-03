@@ -1,6 +1,6 @@
 args: {
     dbName: "instance"
-    username: args.dbName
+    username: dbName
 }
 
 // This is expected to be bound in 
